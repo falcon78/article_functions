@@ -6,27 +6,23 @@ admin.initializeApp();
 const express = require('express');
 const app = express();
 
-app.get('/test', (req: any, res: any) => {
+app.get('/searchPublished/:searchString', (req: any, res: any) => {
+    console.log(req.body.title);
+  let regex = new RegExp(req.params.searchString, 'gim');
   admin
     .firestore()
-    .collection('Private')
+    .collection('Published')
     .get()
-    .then((data: Array<Object>) => {
-      let dataPool: Array<Object> = [];
+    .then((data: any) => {
+      let matchDocuments: Array<Object> = [];
       data.forEach((doc: any) => {
-        dataPool.push(doc.data());
+        const docData = doc.data();
+        if (docData.title.match(regex)) {
+          matchDocuments.push(docData);
+        }
       });
-      return res.json(dataPool);
+      return res.json(matchDocuments);
     });
 });
 
-app.get('/another', (req: any, res: any) => {
-  return res.json({
-    type: 'success',
-    payload: {
-      data: 'got the object successfully'
-    }
-  });
-});
-
-exports.api = functions.https.onRequest(app);
+exports.api = functions.region('asia-northeast1').https.onRequest(app);
